@@ -62,3 +62,6 @@ Lebih berat secara komputasi karena melibatkan lebih banyak piksel per jendela.
 Output:
 
 Menampilkan setiap matriks 5×5 non-empty.
+
+
+https://gemini.google.com/share/d8f697de7bf0
