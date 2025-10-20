@@ -9,6 +9,8 @@
 #include <iostream>
 #include <iomanip>
 #include <QPixmap>
+#include <set>
+#include <string>
 #include "CustomMatrix.h"
 
 using namespace std;

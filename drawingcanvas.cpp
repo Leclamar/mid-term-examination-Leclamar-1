@@ -22,34 +22,99 @@ void DrawingCanvas::paintLines(){
     update();
 }
 
-void DrawingCanvas::segmentDetection(){
-    QPixmap pixmap = this->grab(); //
+void DrawingCanvas::segmentDetection() {
+    QPixmap pixmap = this->grab();
     QImage image = pixmap.toImage();
 
-    cout << "image width " << image.width() << endl;
-    cout << "image height " << image.height() << endl;
+    cout << "image width: " << image.width() << endl;
+    cout << "image height: " << image.height() << endl;
 
-    //To not crash we set initial size of the matrix
-    vector<CustomMatrix> windows(image.width()*image.height());
+    // To not crash we set initial size of the matrix
+    vector<CustomMatrix> windows(image.width() * image.height());
 
-    // Get the pixel value as an ARGB integer (QRgb is a typedef for unsigned int)
-    for(int i = 1; i < image.width()-1;i++){
-        for(int j = 1; j < image.height()-1;j++){
-            bool local_window[3][3] = {false};
+    int windowCount = 0;
 
-            for(int m=-1;m<=1;m++){
-                for(int n=-1;n<=1;n++){
-                    QRgb rgbValue = image.pixel(i+m, j+n);
-                    local_window[m+1][n+1] = (rgbValue != 0xffffffff);
+    // ------------------------
+    // 3x3 Window Detection
+    // ------------------------
+    const int WINDOW_SIZE3x3 = 3;
+    const int HALF_SIZE3x3 = WINDOW_SIZE3x3 / 2;  // = 1
+
+    for (int i = HALF_SIZE3x3; i < image.width() - HALF_SIZE3x3; i++) {
+        for (int j = HALF_SIZE3x3; j < image.height() - HALF_SIZE3x3; j++) {
+            bool local_window[WINDOW_SIZE3x3][WINDOW_SIZE3x3] = {false};
+            bool hasNonWhitePixel = false;
+
+            for (int m = -HALF_SIZE3x3; m <= HALF_SIZE3x3; m++) {
+                for (int n = -HALF_SIZE3x3; n <= HALF_SIZE3x3; n++) {
+                    QRgb rgbValue = image.pixel(i + m, j + n);
+
+                    int red = qRed(rgbValue);
+                    int green = qGreen(rgbValue);
+                    int blue = qBlue(rgbValue);
+                    bool isDrawn = (red < 240 || green < 240 || blue < 240);
+
+                    local_window[m + HALF_SIZE3x3][n + HALF_SIZE3x3] = isDrawn;
+                    if (isDrawn) hasNonWhitePixel = true;
                 }
             }
 
-            CustomMatrix mat(local_window);
+            if (hasNonWhitePixel) {
+                windowCount++;
+                cout << "\n- [3x3] Window #" << windowCount
+                     << " at position (" << i << ", " << j << ") -" << endl;
 
-            windows.push_back(mat);
+                for (int row = 0; row < WINDOW_SIZE3x3; row++) {
+                    for (int col = 0; col < WINDOW_SIZE3x3; col++) {
+                        cout << (local_window[row][col] ? "1" : "0") << " ";
+                    }
+                    cout << endl;
+                }
+            }
         }
     }
-    return;
+
+    // ------------------------
+    // 5x5 Window Detection
+    // ------------------------
+    const int WINDOW_SIZE5x5 = 5;
+    const int HALF_SIZE5x5 = WINDOW_SIZE5x5 / 2;  // = 2
+
+    for (int i = HALF_SIZE5x5; i < image.width() - HALF_SIZE5x5; i++) {
+        for (int j = HALF_SIZE5x5; j < image.height() - HALF_SIZE5x5; j++) {
+            bool local_window[WINDOW_SIZE5x5][WINDOW_SIZE5x5] = {false};
+            bool hasNonWhitePixel = false;
+
+            for (int m = -HALF_SIZE5x5; m <= HALF_SIZE5x5; m++) {
+                for (int n = -HALF_SIZE5x5; n <= HALF_SIZE5x5; n++) {
+                    QRgb rgbValue = image.pixel(i + m, j + n);
+
+                    int red = qRed(rgbValue);
+                    int green = qGreen(rgbValue);
+                    int blue = qBlue(rgbValue);
+                    bool isDrawn = (red < 240 || green < 240 || blue < 240);
+
+                    local_window[m + HALF_SIZE5x5][n + HALF_SIZE5x5] = isDrawn;
+                    if (isDrawn) hasNonWhitePixel = true;
+                }
+            }
+
+            if (hasNonWhitePixel) {
+                windowCount++;
+                cout << "\n- [5x5] Window #" << windowCount
+                     << " at position (" << i << ", " << j << ") -" << endl;
+
+                for (int row = 0; row < WINDOW_SIZE5x5; row++) {
+                    for (int col = 0; col < WINDOW_SIZE5x5; col++) {
+                        cout << (local_window[row][col] ? "1" : "0") << " ";
+                    }
+                    cout << endl;
+                }
+            }
+        }
+    }
+
+    cout << "\nTotal non-empty windows found (3x3 + 5x5): " << windowCount << endl;
 }
 
 void DrawingCanvas::paintEvent(QPaintEvent *event){
